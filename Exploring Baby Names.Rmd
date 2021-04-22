@@ -26,7 +26,7 @@ NOTE: This is only the most popular 1,000 names per year.
 download.file("https://www.ssa.gov/oact/babynames/names.zip", dest="dataset.zip", mode="wb") 
 unzip ("dataset.zip", exdir = "./")
 ```
-
+Putting all those files together
 
 
 ```{r}
@@ -42,7 +42,7 @@ df <- list_of_files %>%
                 col_types = cols(X2 = col_character()))
 ```
 
-
+And making it look nice
 
 
 ```{r}
