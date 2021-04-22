@@ -20,7 +20,7 @@ library(DT)
 ## Baby Names
 
 
-Bringing in national names from the [Social Security Administration](https://www.ssa.gov/oact/babynames/limits.html)
+Bringing in the government's list of baby names from the [Social Security Administration](https://www.ssa.gov/oact/babynames/limits.html)
 NOTE: This is only the most popular 1,000 names per year. 
 ```{r}
 download.file("https://www.ssa.gov/oact/babynames/names.zip", dest="dataset.zip", mode="wb") 
