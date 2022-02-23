@@ -1,0 +1,573 @@
+---
+title: "Learning R"
+author: "Lucia Walinchus"
+date: "6/23/2020"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(rio)
+library(zip)
+library(purrr)
+library(tidyverse)
+library(fs)
+library(DT)
+
+```
+
+## Baby Names
+
+
+Bringing in the government's list of baby names from the [Social Security Administration](https://www.ssa.gov/oact/babynames/limits.html)
+NOTE: This is only the most popular 1,000 names per year. 
+```{r}
+setwd("~/Code/BabyNames/NICAR2022")
+download.file("https://www.ssa.gov/oact/babynames/names.zip", dest="dataset.zip", mode="wb") 
+unzip ("dataset.zip", exdir = "./")
+```
+Putting all those files together
+
+
+```{r}
+
+setwd("~/Code/BabyNames/NICAR2022")
+
+list_of_files <- list.files(path = ".", recursive = TRUE,
+                            pattern = "\\.txt$", 
+                            full.names = TRUE)
+
+df <- list_of_files %>%
+  purrr::set_names(nm = (basename(.) %>% tools::file_path_sans_ext())) %>%
+  purrr::map_df(read_csv, 
+                col_names = FALSE,
+                .id = "FileName",
+                col_types = cols(X2 = col_character()))
+```
+
+And making it look nice
+
+
+```{r}
+US_Names <- df %>%
+  mutate(year = str_sub(FileName,4,8)) %>% 
+  select(-FileName) %>% 
+  mutate(name = X1, gender = X2, number = X3) %>% 
+  select(-X1, -X2, -X3) %>% 
+  distinct()
+
+US_Names$year <- as.numeric(US_Names$year)
+
+```
+
+
+
+
+
+```{r}
+Lucias <- US_Names %>% 
+  filter(name=="Lucia"& gender == "F")
+
+ggplot(Lucias, aes(year, number))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Lucia.jpg", plot=last_plot())
+```
+
+
+```{r}
+Marys <- US_Names %>% 
+  filter(name=="Mary" & gender == "F")
+
+ggplot(Marys, aes(year, number))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Mary' in the United States per Year", subtitle = "Note: Data only includes top 1,000 names per year.")
+
+ggsave("Mary.jpg", plot=last_plot())
+```
+
+```{r}
+Leslies <- US_Names %>% 
+  filter(name=="Leslie")
+
+ggplot(Leslies, aes(year, number, fill = gender))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Leslie' in the United States per Year", subtitle = "Note: Only includes top 1,000 names per year.")
+
+ggsave("Leslies.jpg", plot=last_plot())
+```
+
+
+```{r}
+Total_Names1990F <- US_Names %>% 
+  filter(year == "1990" & gender == "F")
+  
+  
+length(unique(Total_Names1990F[["name"]]))
+
+length(unique(Total_Names1990F[["number"]]))
+
+
+```
+So they take the top 1,000 by rank. Unless there's fewer than 5 in each set. 
+
+Now for the state data set. 
+```{r}
+download.file("https://www.ssa.gov/oact/babynames/state/namesbystate.zip", destfile = "state_names_dataset.zip", mode="wb") 
+unzip ("state_names_dataset.zip", exdir = "State_Names/")
+```
+
+
+
+```{r}
+setwd("~/Code/Red/BabyNames/State_Names")
+
+list_of_files <- list.files(path = ".", recursive = TRUE,
+                            pattern = "{6}",
+                            #pattern = "\\.txt$",
+                            full.names = TRUE)
+
+list_of_files <-list_of_files[- 43]
+
+df <- list_of_files %>%
+  purrr::set_names(nm = (basename(.) %>% tools::file_path_sans_ext())) %>%
+  purrr::map_df(read_csv, 
+                col_names = FALSE,
+                .id = "FileName",
+                col_types = cols(
+  X1 = col_character(),
+  X2 = col_character(),
+  X3 = col_double(),
+  X4 = col_character(),
+  X5 = col_double()
+))
+```
+
+
+
+Looking just at *Ohio*
+```{r}
+OH_Names <- df %>%
+  select(-FileName) %>% 
+  mutate(state=X1, gender = X2, year = X3, name = X4, number = X5) %>% 
+  select(-X1,-X2,-X3,-X4,-X5) %>% 
+  filter(state=="OH") %>% 
+  distinct()
+
+```
+
+Most popular in Ohio
+
+```{r}
+Most_Popular_OH <- OH_Names %>% 
+  group_by(year, name, number) %>% 
+  arrange(desc(number))
+
+
+datatable(Most_Popular_OH)
+```
+
+
+
+
+
+
+Bonnie <- US_Names %>% 
+     filter(name=="Bonnie" & gender == "F")
+
+ggplot(Bonnie, aes(year, number))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+
+ggsave("Bonnie.jpg", plot=last_plot()
+)
+
+Jennifer <- US_Names %>% 
+     filter(name=="Jennifer" & gender == "F")
+
+ggplot(Jennifer, aes(year, number))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+
+ggsave("Jennifer.jpg", plot=last_plot()
+)
+
+Jennifer <- US_Names %>% 
+     filter(name=="Jennifer" & gender == "F")
+```{r}
+Christian <- US_Names %>% 
+     filter(name=="Christian" & gender == "M")
+
+ggplot(Christian, aes(year, number))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Christian.jpg", plot=last_plot()
+)
+
+```
+
+
+```{r}
+Michael <- US_Names %>% 
+     filter(name=="Michael" & gender == "M")
+
+ggplot(Michael, aes(year, number))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Michael.jpg", plot=last_plot()
+)
+
+```
+
+
+
+```{r}
+Kyle <- US_Names %>% 
+     filter(name=="Kyle" & gender == "M")
+
+ggplot(Kyle, aes(year, number))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Kyle.jpg", plot=last_plot()
+)
+
+```
+
+```{r}
+Mark <- US_Names %>% 
+     filter(name=="Mark" & gender == "M")
+
+ggplot(Mark, aes(year, number))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Mark.jpg", plot=last_plot()
+)
+
+```
+
+
+```{r}
+Sofia <- US_Names %>% 
+     filter(name=="Sofia" | name== "Sophia" & gender == "F")
+
+ggplot(Sofia, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Sofia.jpg", plot=last_plot()
+)
+
+```
+
+```{r}
+Jeanmarie <- US_Names %>% 
+     filter(name=="Jeanmarie" & gender == "F")
+
+ggplot(Jeanmarie, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Jeanmarie.jpg", plot=last_plot()
+)
+
+```
+
+
+```{r}
+Karen <- US_Names %>% 
+     filter(name=="Karen" & gender == "F")
+
+ggplot(Karen, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Karen.jpg", plot=last_plot()
+)
+
+datatable(Karen)
+```
+
+
+```{r}
+Afi <- US_Names %>% 
+     filter(name=="Afi" & gender == "F")
+
+ggplot(Afi, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Afi.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Odelia <- US_Names %>% 
+     filter(name=="Odelia" & gender == "F")
+
+ggplot(Odelia, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Odelia.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Kaitlyn <- US_Names %>% 
+     filter(name=="Kaitlyn" & gender == "F")
+
+ggplot(Kaitlyn, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Kaitlyn.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Amy <- US_Names %>% 
+     filter(name=="Amy" & gender == "F")
+
+ggplot(Amy, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Amy.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Dorothy <- US_Names %>% 
+     filter(name=="Dorothy" & gender == "F")
+
+ggplot(Dorothy, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Dorothy.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Carolyn <- US_Names %>% 
+     filter(name=="Carolyn" & gender == "F")
+
+ggplot(Carolyn, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Carolyn.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Madison <- US_Names %>% 
+     filter(name=="Madison" & gender == "F")
+
+ggplot(Madison, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Madison.jpg", plot=last_plot()
+)
+```
+
+```{r}
+Tara <- US_Names %>% 
+     filter(name=="Tara" & gender == "F")
+
+ggplot(Tara, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Tara.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Sadie <- US_Names %>% 
+     filter(name=="Sadie" & gender == "F")
+
+ggplot(Sadie, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Sadie.jpg", plot=last_plot()
+)
+```
+
+```{r}
+Nicholas <- US_Names %>% 
+     filter(name=="Nicholas" & gender == "F")
+
+ggplot(Nicholas, aes(year, number, color = name))+
+     geom_point()+
+     theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+
+ggsave("Nicholas.jpg", plot=last_plot()
+)
+```
+
+
+```{r}
+Lia <- US_Names %>% 
+  filter(name=="Lia" | name =="Leah")
+
+ggplot(Lia, aes(year, number, fill = name))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Lia.jpg", plot=last_plot())
+```
+
+```{r}
+LuciaLucy <- US_Names %>% 
+  filter(name=="Lucia"| name=="Lucy"& gender=="F")
+
+ggplot(LuciaLucy, aes(year, number, color = name))+
+  geom_point(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Lucy' and 'Lucia' in the United States per Year", subtitle = "Note: Data only includes top 1,000 names per year.")
+
+ggsave("LuciaLucy.jpg", plot=last_plot())
+```
+
+```{r}
+AnthonyAntonio <- US_Names %>% 
+  filter(name=="Anthony"| name=="Antonio"& gender=="M")
+
+ggplot(AnthonyAntonio, aes(year, number, color = name))+
+  geom_point(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Anthony' and 'Antonio' in the United States per Year", subtitle = "Note: Data only includes top 1,000 names per year.")
+
+ggsave("LuciaLucy.jpg", plot=last_plot())
+```
+
+
+
+```{r}
+Erin <- US_Names %>% 
+  filter(name=="Erin" & gender =="F")
+
+ggplot(Erin, aes(year, number))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Erin.jpg", plot=last_plot())
+```
+
+```{r}
+Virginia <- US_Names %>% 
+  filter(name=="Virginia" & gender =="F")
+
+ggplot(Virginia, aes(year, number))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Virginia.jpg", plot=last_plot())
+```
+
+```{r}
+Becky <- US_Names %>% 
+  filter(name=="Rebecca" & gender =="F")
+
+ggplot(Becky, aes(year, number))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Becky.jpg", plot=last_plot())
+```
+
+
+```{r}
+Alise <- US_Names %>% 
+  filter(name=="Alise" | name== "Elise" & gender =="F")
+
+ggplot(Alise, aes(year, number, fill = name))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Alise.jpg", plot=last_plot())
+```
+
+
+```{r}
+Elise <- US_Names %>% 
+  filter(name=="Alise" | name== "Elise" & gender =="F")
+
+ggplot(Elise, aes(year, number, color = name))+
+  geom_line()+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Elise.jpg", plot=last_plot())
+```
+
+
+
+```{r}
+Laura <- US_Names %>% 
+  filter(name=="Laura" & gender =="F")
+
+ggplot(Laura, aes(year, number))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))
+
+ggsave("Laura.jpg", plot=last_plot())
+```
+
+
+
+Lots
+
+```{r}
+ManyNames <- US_Names %>% 
+  filter(name=="Edith" |
+           name=="Rose"|
+           name=="Gina"|
+           name=="Tara"|
+           name=="Kaitlyn"|
+           name=="Tanisha"|
+           name=="Maria"|
+           name=="Yvonne"|
+           name=="Lois"& gender =="F")
+
+ggplot(ManyNames, aes(year, number, fill=name))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~name)+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "US Baby Names",subtitle = "Sample of 9 popular baby names in the US per year")
+
+```
+
+
+
+
+
+
