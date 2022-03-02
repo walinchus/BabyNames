@@ -1,0 +1,374 @@
+---
+title: "R3 | Getting and Cleaning Data"
+author: "Sean Mussenden"
+date: "3/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### What We're Doing
+
+In this hourlong session, we're going to show you:
+
+* How to pull flat data (tables or spreadsheets) into R in several different ways.
+  * Read in data that comes preloaded as part of a package.
+  * Read in a CSV file on your local machine
+  * Download a CSV file located somewhere on the Internet.
+  * Read in data from an Excel file stored locally.
+  * Read in data from a Google Sheet.
+  * Read in data from an HTML table from the Internet and coerce it into an R dataframe, using the RVest package.
+  
+* Introduce you to, but not teach in detail, information about alternate data loading methods, including packages that will help you:
+  * Pull data from an SQL database. 
+  * Pull data from an API endpoint on the web.
+  * Easily pull data from specific APIs (like Twitter or the U.S. Census).
+  * Load nested data, like json. 
+  
+* Do some basic clean tasks once you've pulled it in.
+  * Bulk rename dirty column names, using the Janitor package.
+  * Convert column types, including dates, numbers and text. 
+  * Manipulate columns containing strings to make them usable, and create new columns. 
+
+This class isn't designed to make you an expert in any of these concepts. We're introducing them to you, as a foundation for further learning.  
+
+### How We're Doing It
+
+In the exercises below, we'll work through some examples together.  And then we'll give you a chance to try it out on your own.  
+
+### Getting Started 
+
+First, you'll need to know the location of the GitHub repository for this course. 
+
+It's https://github.com/walinchus/BabyNames. Go ahead and load that into a web browser.   
+
+You should also create a new RProject for this course.  Among other things, it will set your working directory so local files load correctly.  Go to File > New Project > Existing Directory and select the desktop folder for this course.      
+
+Then, create a new R script file (File -> New File -> R Script) and save it in that same folder.
+
+### Loading Libraries
+
+We'll need to load several packages for this class.  They are:
+
+* The [Tidvyerse](https://www.tidyverse.org/) collection of packages. We'll be making extensive use of the readr, dplyr and stringr packages,which all load as part of the tidyverse core.  
+* The [rvest](http://rvest.tidyverse.org/) package for web scraping.
+* The [janitor](https://github.com/sfirke/janitor) package for data cleaning. 
+* The [readxl](https://readxl.tidyverse.org/) package for loading Excel files. 
+* The [googlesheets4](https://googlesheets4.tidyverse.org/) package for reading -- and writing -- data stored in a Google Sheet. 
+* The [lubridate](https://lubridate.tidyverse.org/) package for working with dates.
+
+
+```{r}
+#install.packages('babynames')
+#
+
+#install.packages('tidyverse')
+#install.packages('rvest')
+#install.packages('janitor')
+#install.packages('readxl')
+#install.packages('googlesheets4')
+#install.packages('babynames')
+
+
+library(tidyverse)
+library(rvest)
+library(janitor)
+library(readxl)
+library(googlesheets4)
+library(babynames)
+
+```
+
+### Loading Local Data
+
+#### Loading preloaded data from a package
+
+If you've taken earlier classes in this sequence, you'll have loaded data of Social Security Administration data on names of babies born across the last ~100 years. It comes built in with the 'babynames' package we loaded. 
+
+Let's load that now and store it as an object called `babynames_package`
+
+```{r}
+
+# Load babynames
+babynames_package <- babynames
+
+# Show first 10 records
+
+babynames_package %>%
+  head(10)
+
+babynames_package %>%
+  filter(str_detect(name,"^A")) %>%
+  write_csv("data/R3/babynames_a.csv")
+
+```
+
+#### Loading data from a local flat file
+
+Loading data from a flat file -- like a csv -- stored on your local machine is a very common data loading task.  For that, we'll use the `read_csv()` function that's part of the `readr` package that loads with the `tidyverse`. 
+
+We're going to read in a sample of the babynames data that contains all of the names that start with "A". 
+
+Store it as an object called "babynames_a_csv" (the name doesn't matter, can be anything). The information inside of `read_csv()` is the filepath to the data, which is stored in the data > R3. 
+
+```{r}
+
+babynames_a_csv <- read_csv("data/R3/babynames_a.csv")
+
+```
+
+#### Loading data from a flat file on the internet
+
+We can load that same csv from the internet, instead of doing it locally.  We just need to change the information inside of the `read_csv()` function to pass a . 
+
+```{r}
+babynames_a_url <- 
+```
+
+have a good sense of how to load data locally using the read_csv() function from the readr package.
+
+We're going to read in the same data set we've been working with in earlier classes, of grandparents in Louisiana counties who are living with or are responsible for their grandchildren. 
+
+Let's read in the data now, and store it as an object called grandparents_local
+grandparents_local <- read_csv("data/grandparentsR1.csv")
+
+```{r}
+# Note: the path may be different on class pcs
+ grandparents_local <- read_csv("data/grandparentsR1.csv")
+
+# This is most likely the path on the NICAR-IRE pcs
+
+# grandparents_local <- read_csv("C:/Users/user/Desktop/hands_on_classes/r_3_gathering_and_cleaning_data_repeat_1088/data/grandparentsR1.csv")
+
+```
+
+You can now view it in the environment window. 
+
+### Downloading Data from the Internet
+
+If our CSV is not on our local machine, but exists on the internet, the process for getting it works pretty similarly as loading it locally.  
+
+Instead of telling our read_csv function the local file path, we can tell it the file path on the web.  
+
+Go to the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course. Go into the Data folder. Click on grandparentsR1.csv. Click the raw button. Copy the URL for the raw CSV.  
+
+```{r}
+# http://bit.ly/r3_data
+# Define an object that has the URL 
+grandparents_url <-'https://raw.githubusercontent.com/rtburg/NICAR2020-Intro-to-R/master/data/grandparentsR1.csv'
+
+# Pass the grandparents_url to our read_csv function and store it as an object.
+grandparents_download <-read_csv(grandparents_url)
+```
+
+Now, you try it on your own.  
+
+In the data folder for the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course, there's a file called opioids.csv that has opioid death rates by county. 
+
+Using the method above, pull in the data and store it as an object called opioids_download. 
+
+```{r}
+# Define an object that has the URL 
+# http://bit.ly/r3_data
+opioids_url <-'https://raw.githubusercontent.com/rtburg/NICAR2020-Intro-to-R/master/data/opioids.csv'
+
+# Pass the grandparents_url to our read_csv function and store it as an object.
+opioids_download <-read_csv(opioids_url)
+```
+
+### Scraping Data from the Internet
+
+There's lots of great information on the web that is not available for download as a CSV, but instead exists as data on an HTML page. 
+
+Fortunately, the handy rvest package makes it easy to scrape that data into a format we can work with in R. 
+If you go to the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course, then into the data folder, then click on grandparentsR1.csv, we see an html table that contains the information we've been working with on grandparents caring for grandchildren. 
+
+If we use our web browser to inspect element, we see it's an html table.  Which means it should be fairly trivial to scrape it. 
+
+First, let's use the read_html function in rvest to pull in the raw html content from the page, and store it as an object called grandparents_scrape. 
+
+```{r}
+# http://bit.ly/r3_data
+grandparents_scrape <-read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv")
+```
+
+In our environment window, we see it comes in as a "nested list".  We can examine it in our environment window, and see it's structured like an HTML page. 
+
+Now, let's strip out all the junk we don't want, and just keep the thing we want: the table with our info. 
+
+```{r}
+grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
+  html_nodes('table')
+```
+
+We can examine the results in the environment window.  It kept the table head and table body, but it's kinda unreadable. Luckily, we can use the html_table() convenience function to clean it up. header=1 says to use the first row as a header. 
+
+```{r}
+grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
+  html_nodes('table') %>%
+  html_table(header=1) 
+```
+
+We're getting closer.  But it's still a nested list, not super usable for our purposes. We can add an as.data.frame() function to make it a data frame. When you view it in the environment window, it looks like a dataframe now. 
+
+```{r}
+grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
+  html_nodes('table') %>%
+  html_table(header=1) %>%
+  as.data.frame()
+```
+
+It's got one extra blank column. We can remove that with a select() statement, saying drop the first column. 
+
+```{r}
+grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
+  html_nodes('table') %>%
+  html_table(header=1) %>%
+  as.data.frame() %>%
+  select(-1)
+```
+
+Okay, now it's your turn.  
+
+In the data folder for the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course, there's a file called opioids.csv that has opioid death rates by county. Make sure you're using the page with the html table, not the raw csv. 
+
+Using the method above, pull in the data and store it as an object called opioids_scrape. This may take a minute to load.  Did it show up in your environment window.
+
+```{r}
+opioids_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/opioids.csv") %>%
+  html_nodes('table') %>%
+  html_table(header=1) %>%
+  as.data.frame() %>%
+  select(-1)
+```
+
+There are lots of other ways to bring data into R. 
+
+We don't have to delve into all of them today, but you should be aware of them for continued learning. 
+
+* The [jsonlite](https://cran.r-project.org/web/packages/jsonlite/vignettes/json-aaquickstart.html) package for working with json files.
+* You can access data available through pretty much any API, or application programming interface, by sending queries and getting back a response, using the excellent [HTTR package](https://httr.r-lib.org/).  Some examples of APIs include: [Spotify data](https://developer.spotify.com/documentation/web-api/) and [Twitter's API](https://developer.twitter.com/en/docs)
+
+You can also use packages the R community has built to load and work with specific kinds of data, including some nice helper functions.  Some great examples:
+*[Tidycensus](https://walkerke.github.io/tidycensus/index.html): for loading and working with all manner of U.S. Census Data.
+*[RTweet](https://rtweet.info/): for working with Twitter data
+*[ARCOS](https://github.com/wpinvestigative/arcos): for working with DEA opioid shipment data, released by WaPo.
+
+### Data Cleaning 
+
+Going forward, we're going to work with the grandparents_local file. 
+
+Let's load it again and view it. 
+
+```{r}
+grandparents_local <- read_csv("data/grandparentsR1.csv")
+grandparents_local
+```
+
+It's got some funky CamelCase column names, a mix of lower and uppercase letters, and some underscores. Let's standarize that, using a function called clean_names() from the [janitor package](https://github.com/sfirke/janitor)
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  clean_names()
+```
+
+Let's view it again. 
+
+```{r}
+grandparents_local
+```
+
+Janitor has a lot of other data cleaning functionality that's worth knowing about, but that we won't have a lot of time to cover, including:
+* It can identify duplicate rows
+* It can identify and remove blank rows
+
+This data set is relatively clean, but there's still some work we can do to it.
+
+Let's suppose we want to split our geography column into two columns, one with just the parish and one with just the state. 
+
+We can use the [separate() function](https://tidyr.tidyverse.org/reference/separate.html) here. We're telling it to split the column geography into two columns (parish and state), and to split them where you see a column.
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  separate(geography, into=c("parish_name","state"), sep=",")
+
+grandparents_local
+```
+
+Okay, good.  But that caused a problem.  The state column now has a tiny bit of white space at the front.We can see it when we highlight the column, using view.  
+
+Let's get rid of that, using [str_trim](https://stringr.tidyverse.org/reference/str_trim.html) from the [stringr package](https://stringr.tidyverse.org/index.html)
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  mutate(state = str_trim(state))
+
+grandparents_local
+```
+
+Okay, good, but let's suppose we wanted to join our parish data with another data set from the census, to explore relationships between demographic factors like race and poverty and grandchildren living with grandparents.  
+
+And let's suppose that the Census had parish names all lowercase, with no caps.
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  mutate(parish_name = tolower(parish_name))
+
+grandparents_local
+```
+
+Or, even worse, let's imagine that the Census data we want to join it with doesn't have the word "parish" in it. We can use [str_remove()](https://stringr.tidyverse.org/reference/str_remove.html) from stringr. 
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  mutate(parish_name = str_remove(parish_name, "parish"))
+
+grandparents_local
+```
+
+It's got that whitespace again, so let's trim it. Go ahead and do that on your own. 
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  mutate(parish_name = str_trim(parish_name))
+
+grandparents_local
+```
+
+Lastly, we're going to change the column type of id2.  It's stored as a "double", a number format.  But it's a FIPS code, and we'd never do math on it.  It makes more sense to store it as a character.  
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  mutate(id2 = as.character(id2))
+grandparents_local
+```
+
+In addition to as.character, there's also as.numeric and other functions for changing column types.
+
+Lastly, we'll learn how to split a string based on space. id2 is a FIPS code.  Two digit state, 3 digit county. 
+
+We can use [str_sub()](https://stringr.tidyverse.org/reference/str_sub.html) from the stringr package to take the first two digits from the left and store them in a new column called state_code.
+
+```{r}
+
+grandparents_local <- grandparents_local %>%
+  mutate(state_code = str_sub(id2, start=1L, end=2L))
+```
+
+On your own, create a new column for the county code. You want to get the last three digits.   
+
+```{r}
+grandparents_local <- grandparents_local %>%
+  mutate(county_code = str_sub(id2, start=3L, end=5L))
+
+```
+
+This is only scratching the surface for data cleaning. There's a ton more you can do. 
+
+I highly recomment checking out the documentation for:
+*[Janitor](https://github.com/sfirke/janitor)
+*[Stringr](https://stringr.tidyverse.org/index.html)
+
+-30-
