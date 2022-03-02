@@ -62,22 +62,24 @@ We'll need to load several packages for this class.  They are:
 
 ```{r}
 #install.packages('babynames')
-#
-
 #install.packages('tidyverse')
 #install.packages('rvest')
 #install.packages('janitor')
 #install.packages('readxl')
 #install.packages('googlesheets4')
 #install.packages('babynames')
+
+# Turn off scientific notation
 options(scipen=999)
 
+# Load libraries
 library(tidyverse)
 library(rvest)
 library(janitor)
 library(readxl)
 library(googlesheets4)
 library(babynames)
+
 
 ```
 
@@ -89,13 +91,13 @@ If you've taken earlier classes in this sequence, you'll have loaded data of Soc
 
 Let's load that now and store it as an object called `babynames_package`
 
+
 ```{r}
 
 # Load babynames
 babynames_package <- babynames
 
 # Show first 10 records
-
 babynames_package %>%
   head(10)
 
@@ -121,142 +123,122 @@ babynames_a_csv <- read_csv("data/R3/babynames_a.csv")
 
 #### Loading data from a flat file on the internet
 
-We can load that same csv from the internet, instead of doing it locally.  We just need to change the information inside of the `read_csv()` function to pass a . 
+We can load that same csv from the internet, instead of doing it locally.  We just need to change the information inside of the `read_csv()` function to pass a URL instead of a location on our computer. The CSV is up on Github.com, here: https://raw.githubusercontent.com/walinchus/BabyNames/master/data/R3/babynames_a.csv
 
 ```{r}
 babynames_a_url <- read_csv("https://raw.githubusercontent.com/walinchus/BabyNames/master/data/R3/babynames_a.csv")
 ```
 
-have a good sense of how to load data locally using the read_csv() function from the readr package.
 
-We're going to read in the same data set we've been working with in earlier classes, of grandparents in Louisiana counties who are living with or are responsible for their grandchildren. 
+#### Loading data from an excel file
 
-Let's read in the data now, and store it as an object called grandparents_local
-grandparents_local <- read_csv("data/grandparentsR1.csv")
+Another data format you'll likely see in the wild: Excel files. They're a little trickier than csvs, because they can contain multiple sheets. 
+
+We can use the `read_xlsx()` function to load data from Excel files. There's an Excel file in the data/R3 folder called babynames_excel.  It has two sheets, one with all of the "A" babynames, followed by one with all of the "B" babynames. 
+
+Let's load that As as a dataframe and store it as an object called babynames_a_excel.
 
 ```{r}
-# Note: the path may be different on class pcs
- grandparents_local <- read_csv("data/grandparentsR1.csv")
+babynames_a_excel <- read_xlsx("data/R3/babynames_excel.xlsx")
+```
 
-# This is most likely the path on the NICAR-IRE pcs
+Because "A" is the first sheet, the function loads the "A" sheet. But if we need to get any other sheet, like "B" we'll have to get it by adding another argument to the read_xlsx function. 
 
-# grandparents_local <- read_csv("C:/Users/user/Desktop/hands_on_classes/r_3_gathering_and_cleaning_data_repeat_1088/data/grandparentsR1.csv")
+Let's load B now and store it as an object called babynames_b_excel. Notice we've included the name of the sheet.
+
+```{r}
+babynames_b_excel <- read_xlsx("data/R3/babynames_excel.xlsx", sheet="babynames_b")
 
 ```
 
-You can now view it in the environment window. 
+## Loading data from google sheets
 
-### Downloading Data from the Internet
+We can also load data directly from Google Sheets, using the `read_sheet()` function from the `googlesheets4` package.  Google Sheets, like Excel files, can also have multiple workbooks. 
 
-If our CSV is not on our local machine, but exists on the internet, the process for getting it works pretty similarly as loading it locally.  
+I've loaded up a Google Sheet workbook here with two sheets, one for "A" babynames and one for "B" babynames: https://docs.google.com/spreadsheets/d/1GG_RmYPGCNKbLb4x1dkQv1B9NjDBF0kQRtge9Aea4rs.
 
-Instead of telling our read_csv function the local file path, we can tell it the file path on the web.  
+To read in the sheet, we need to paste in the sheet ID, which is the long sting of numbers and letters at the end of the URL. 
 
-Go to the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course. Go into the Data folder. Click on grandparentsR1.csv. Click the raw button. Copy the URL for the raw CSV.  
-
-```{r}
-# http://bit.ly/r3_data
-# Define an object that has the URL 
-grandparents_url <-'https://raw.githubusercontent.com/rtburg/NICAR2020-Intro-to-R/master/data/grandparentsR1.csv'
-
-# Pass the grandparents_url to our read_csv function and store it as an object.
-grandparents_download <-read_csv(grandparents_url)
-```
-
-Now, you try it on your own.  
-
-In the data folder for the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course, there's a file called opioids.csv that has opioid death rates by county. 
-
-Using the method above, pull in the data and store it as an object called opioids_download. 
+Because the "A" sheet comes first, it automatically loads that sheet.
 
 ```{r}
-# Define an object that has the URL 
-# http://bit.ly/r3_data
-opioids_url <-'https://raw.githubusercontent.com/rtburg/NICAR2020-Intro-to-R/master/data/opioids.csv'
-
-# Pass the grandparents_url to our read_csv function and store it as an object.
-opioids_download <-read_csv(opioids_url)
+babynames_a_sheet <- read_sheet("1GG_RmYPGCNKbLb4x1dkQv1B9NjDBF0kQRtge9Aea4rs")
 ```
-
-### Scraping Data from the Internet
-
-There's lots of great information on the web that is not available for download as a CSV, but instead exists as data on an HTML page. 
-
-Fortunately, the handy rvest package makes it easy to scrape that data into a format we can work with in R. 
-If you go to the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course, then into the data folder, then click on grandparentsR1.csv, we see an html table that contains the information we've been working with on grandparents caring for grandchildren. 
-
-If we use our web browser to inspect element, we see it's an html table.  Which means it should be fairly trivial to scrape it. 
-
-First, let's use the read_html function in rvest to pull in the raw html content from the page, and store it as an object called grandparents_scrape. 
+If we want to load any other sheet, we need to tell it which one to load. 
 
 ```{r}
-# http://bit.ly/r3_data
-grandparents_scrape <-read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv")
+babynames_b_sheet <- read_sheet("1GG_RmYPGCNKbLb4x1dkQv1B9NjDBF0kQRtge9Aea4rs", sheet = "babynames_b")
 ```
 
-In our environment window, we see it comes in as a "nested list".  We can examine it in our environment window, and see it's structured like an HTML page. 
+A few notes on the `googlesheets4` package.  
 
-Now, let's strip out all the junk we don't want, and just keep the thing we want: the table with our info. 
+* If you want to access a sheet that isn't public on the web, you'll have to authenticate R studio with Google first.  You can do that by running `gs4_auth()`.
+* In addition to loading data from Google Sheets, you can also WRITE data from R Studio to Google sheets.  This is such a great way to share data you've analyzed with other, less tech-savvy members of your team. More on that here: https://googlesheets4.tidyverse.org/index.html.  
+
+## Loading data from an HTML table
+
+On this page is an HTML table showing the top 2020 baby names. https://www.ssa.gov/oact/babynames/
+
+We can use the inspector in our web browser to see this, that it's composed of html tags. Using the `rvest` package we're going to first read in the entire html page using the `read_html()` function.
 
 ```{r}
-grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
-  html_nodes('table')
+
+top_2020_baby_names <- read_html("https://www.ssa.gov/oact/babynames/") 
+
 ```
 
-We can examine the results in the environment window.  It kept the table head and table body, but it's kinda unreadable. Luckily, we can use the html_table() convenience function to clean it up. header=1 says to use the first row as a header. 
+Open it up in the environment window.  It's the full HTML of the page.  
+
+Next, we'll use `rvest` to extract the html table we want using `html_table()`
 
 ```{r}
-grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
-  html_nodes('table') %>%
-  html_table(header=1) 
+top_2020_baby_names <- read_html("https://www.ssa.gov/oact/babynames/") %>%
+  html_table()
+
 ```
 
-We're getting closer.  But it's still a nested list, not super usable for our purposes. We can add an as.data.frame() function to make it a data frame. When you view it in the environment window, it looks like a dataframe now. 
+Open it up in the environment window. We've isolated that one html table and turned it into a dataframe, albeit one that is nested in a list.  Let's extract it from the list. 
 
 ```{r}
-grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
-  html_nodes('table') %>%
-  html_table(header=1) %>%
-  as.data.frame()
+top_2020_baby_names <- top_2020_baby_names[[1]]
+
 ```
 
-It's got one extra blank column. We can remove that with a select() statement, saying drop the first column. 
-
-```{r}
-grandparents_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/grandparentsR1.csv") %>%
-  html_nodes('table') %>%
-  html_table(header=1) %>%
-  as.data.frame() %>%
-  select(-1)
-```
-
-Okay, now it's your turn.  
-
-In the data folder for the [GitHub repo](https://github.com/rtburg/NICAR2020-Intro-to-R) for this course, there's a file called opioids.csv that has opioid death rates by county. Make sure you're using the page with the html table, not the raw csv. 
-
-Using the method above, pull in the data and store it as an object called opioids_scrape. This may take a minute to load.  Did it show up in your environment window.
-
-```{r}
-opioids_scrape <- read_html("https://github.com/rtburg/NICAR2020-Intro-to-R/blob/master/data/opioids.csv") %>%
-  html_nodes('table') %>%
-  html_table(header=1) %>%
-  as.data.frame() %>%
-  select(-1)
-```
-
-There are lots of other ways to bring data into R. 
-
-We don't have to delve into all of them today, but you should be aware of them for continued learning. 
-
-* The [jsonlite](https://cran.r-project.org/web/packages/jsonlite/vignettes/json-aaquickstart.html) package for working with json files.
-* You can access data available through pretty much any API, or application programming interface, by sending queries and getting back a response, using the excellent [HTTR package](https://httr.r-lib.org/).  Some examples of APIs include: [Spotify data](https://developer.spotify.com/documentation/web-api/) and [Twitter's API](https://developer.twitter.com/en/docs)
-
-You can also use packages the R community has built to load and work with specific kinds of data, including some nice helper functions.  Some great examples:
-*[Tidycensus](https://walkerke.github.io/tidycensus/index.html): for loading and working with all manner of U.S. Census Data.
-*[RTweet](https://rtweet.info/): for working with Twitter data
-*[ARCOS](https://github.com/wpinvestigative/arcos): for working with DEA opioid shipment data, released by WaPo.
+Never web scraped before? Now you have! A warning that web scraping does get more challenging from here. 
 
 ### Data Cleaning 
+
+
+```{r}
+babynames_package %>%
+  filter(str_detect(name,"^A")) %>%
+  write_csv("data/R3/babynames_a.csv")
+
+babynames_a <- babynames %>%
+  filter(str_detect(name,"^A")) 
+
+babynames_b <- babynames %>%
+  filter(str_detect(name, "^B"))
+ 
+list_of_dfs <- list("babynames_a" = babynames_a, "babynames_b" = babynames_b)
+
+babynames_excel <- write_xlsx(list_of_dfs,path="data/R3/babynames_excel.xlsx")
+
+babynames_excel_sample
+
+babynames_a_sample <- babynames %>%
+  filter(str_detect(name,"^A")) %>%
+  head(1000)
+
+babynames_b_sample <- babynames %>%
+  filter(str_detect(name, "^B")) %>%
+  head(1000)
+list_of_dfs <- list("babynames_a" = babynames_a_sample, "babynames_b" = babynames_b_sample)
+
+babynames_excel_sample <- write_xlsx(list_of_dfs,path="data/R3/babynames_excel_sample.xlsx")
+
+```
+
 
 Going forward, we're going to work with the grandparents_local file. 
 
