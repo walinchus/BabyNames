@@ -70,7 +70,7 @@ We'll need to load several packages for this class.  They are:
 #install.packages('readxl')
 #install.packages('googlesheets4')
 #install.packages('babynames')
-
+options(scipen=999)
 
 library(tidyverse)
 library(rvest)
@@ -124,7 +124,7 @@ babynames_a_csv <- read_csv("data/R3/babynames_a.csv")
 We can load that same csv from the internet, instead of doing it locally.  We just need to change the information inside of the `read_csv()` function to pass a . 
 
 ```{r}
-babynames_a_url <- 
+babynames_a_url <- read_csv("https://raw.githubusercontent.com/walinchus/BabyNames/master/data/R3/babynames_a.csv")
 ```
 
 have a good sense of how to load data locally using the read_csv() function from the readr package.
