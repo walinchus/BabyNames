@@ -470,7 +470,7 @@ library(jsonlite)
 ## Get a dataframe of people currently in space
 ####
 
-# List of people currently in space, from NASA. Not sure how accurate this is. 
+# List of people currently in space, from NASA, from this example json API. Not sure how accurate this is, so, you know, don't rely on this for a story. 
 # http://api.open-notify.org/astros.json
 
 # Send get request to website
