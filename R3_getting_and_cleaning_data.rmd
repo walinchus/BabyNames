@@ -452,3 +452,48 @@ glimpse(babynames_clean)
 #### Wrapping up
 
 Thanks for joining.  If you get stuck in the future and need some help, I'm at smussend@umd.edu. 
+
+#### Bonus: Get data from a JSON API and convert to a dataframe. 
+We'll use the httr packages for this to fetch data from a JSON api, and jsonlite to conver it. 
+
+```{r}
+#install.packages('httr')
+#install.packages('jsonlite')
+
+####
+## Load libraries
+####
+library(httr)
+library(jsonlite)
+
+####
+## Get a dataframe of people currently in space
+####
+
+# List of people currently in space, from NASA. Not sure how accurate this is. 
+# http://api.open-notify.org/astros.json
+
+# Send get request to website
+# view it
+people_in_space <- GET("http://api.open-notify.org/astros.json")
+
+# Extract just the content
+# view it
+people_in_space <- people_in_space$content
+
+# Convert it to characters
+# view it
+people_in_space <- rawToChar(people_in_space)
+
+# Convert the json to a list
+# view it
+people_in_space <- fromJSON(people_in_space)
+
+# Extract the "people" element from the list and it's a nice tidy dataframe
+# view it
+people_in_space <- people_in_space[["people"]]
+
+# display it below
+people_in_space
+
+```
