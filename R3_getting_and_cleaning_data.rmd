@@ -25,12 +25,11 @@ In this hourlong session, we're going to show you:
   * Pull data from an SQL database with the `dbplyr` package. 
   * Pull data from an API endpoint on the web with .
   * Easily pull data from specific APIs (like Twitter or the U.S. Census).
-  * Load nested data, like json. 
   
 3. Do some basic cleaning tasks once you've loaded data to prepare it for analysis.
   * Bulk rename dirty column names, using the Janitor package.
-  * Convert column types, including dates, numbers and text. 
-  * Manipulate columns containing strings to make them usable, and create new columns. 
+  * Convert column types, including numbers and text. 
+  * Manipulate columns containing strings to make them usable. 
 
 This class isn't designed to make you an expert in any of these concepts. We're introducing them to you, as a foundation for further learning and giving you a sense of where to find more information.  
 
@@ -50,6 +49,9 @@ You should also create a new RProject for this course, if you haven't in early s
 We'll need to load several packages for this class.  They are:
 
 * The [Tidvyerse](https://www.tidyverse.org/) collection of packages. We'll be making extensive use of the readr, dplyr and stringr packages,which all load as part of the tidyverse core.  
+  * [readr](https://readr.tidyverse.org/)
+  * [dplyr](https://dplyr.tidyverse.org/)
+  * [stringr](https://stringr.tidyverse.org/)
 * The [rvest](http://rvest.tidyverse.org/) package for web scraping.
 * The [janitor](https://github.com/sfirke/janitor) package for data cleaning. 
 * The [readxl](https://readxl.tidyverse.org/) package for loading Excel files. 
@@ -195,11 +197,14 @@ Open it up in the environment window. We've isolated that one html table and tur
 
 ```{r}
 
+# Load html and extract table
 top_2020_baby_names <- read_html("https://www.ssa.gov/oact/babynames/") %>%
   html_table()
 
+# Pluck out the table
 top_2020_baby_names <- top_2020_baby_names[[1]]
 
+# display it
 top_2020_baby_names
 
 ```
@@ -223,6 +228,7 @@ There are lots of other ways to bring data into R.  We don't have to delve into 
 #### Clear enivronment
 
 Before moving on to the data cleaning section, let's clean up all those dataframes in our environment with this handy bit of code. 
+
 ```{r}
 rm(list=ls())
 ```
@@ -269,13 +275,13 @@ Are you sure you can't find more?
 
 Are you sure? Ok. Here's what I see. 
 
-* There's a totally empty row of NAs. Let's get rid of it.  It could prevent proper summarizing. 
-* There's a totally empty column called source. Let's get rid of it, because it's unneeded. 
-* The "sex" column has inconsistent values for Female vs F. This could hurt our ability to group and summarize properly. 
-* There are lots of issues in "name_at_birth" column. MADISON is upper. elizabeth is lower. Abigail has "First Name: Abigail" instead of just Abigail. Everything else is title case. This is just...ugly.
-* There are two apparently identical rows for Emma and Amelia (or are they?). We should really only have one, and could lead to misleading summarization if we kept both.
-* The 2015 column has a random underscore appended to the end of the number, unlike every other year column. The fact that it's a mix of characters and numbers means the column is stored as a "character", while all of the other year columns are numbers (integers).  If we want to calculate say, the percent change in a name between 2008 and 2015, we'll get an error. 
-* Less obvious, but still annoying: the fact that the year columns start with a number means they'll be harder to include in our code.
+* EMPTY ROWS - There's a totally empty row of NAs. Let's get rid of it.  It could prevent proper summarizing. 
+* EMPTY COLUMN - There's a totally empty column called source. Let's get rid of it, because it's unneeded. 
+* INCONSISTENT VALUES - The "sex" column has inconsistent values for Female vs F. This could hurt our ability to group and summarize properly. 
+* STYLING INCONSISTENCIES - There are lots of issues in "name_at_birth" column. MADISON is upper. elizabeth is lower. Abigail has "First Name: Abigail" instead of just Abigail. Everything else is title case. This is just...ugly.
+* DUPLICATE ROWS - There are two apparently identical rows for Emma and Amelia (or are they?). We should really only have one, and could lead to misleading summarization if we kept both.
+* NUMBERS STORED AS CHARACTER STRINGS - The 2015 column has a random underscore appended to the end of the number, unlike every other year column. The fact that it's a mix of characters and numbers means the column is stored as a "character", while all of the other year columns are numbers (integers).  If we want to calculate say, the percent change in a name between 2008 and 2015, we'll get an error. 
+* BAD COLUMN NAMES - Less obvious, but still annoying: the fact that the year columns start with a number means they'll be harder to include in our code.
 
 Let's examine each of these, while fixing them. 
 
@@ -446,210 +452,3 @@ glimpse(babynames_clean)
 #### Wrapping up
 
 Thanks for joining.  If you get stuck in the future and need some help, I'm at smussend@umd.edu. 
-
-
-
-
-#### Using 
-```{r}
-babynames_package %>%
-  filter(str_detect(name,"^A")) %>%
-  write_csv("data/R3/babynames_a.csv")
-
-babynames_a <- babynames %>%
-  filter(str_detect(name,"^A")) 
-
-babynames_b <- babynames %>%
-  filter(str_detect(name, "^B"))
- 
-list_of_dfs <- list("babynames_a" = babynames_a, "babynames_b" = babynames_b)
-
-babynames_excel <- write_xlsx(list_of_dfs,path="data/R3/babynames_excel.xlsx")
-
-babynames_excel_sample
-
-babynames_a_sample <- babynames %>%
-  filter(str_detect(name,"^A")) %>%
-  head(1000)
-
-babynames_b_sample <- babynames %>%
-  filter(str_detect(name, "^B")) %>%
-  head(1000)
-list_of_dfs <- list("babynames_a" = babynames_a_sample, "babynames_b" = babynames_b_sample)
-
-babynames_excel_sample <- write_xlsx(list_of_dfs,path="data/R3/babynames_excel_sample.xlsx")
-
-```
-
-
-Going forward, we're going to work with the grandparents_local file. 
-
-Let's load it again and view it. 
-
-```{r}
-grandparents_local <- read_csv("data/grandparentsR1.csv")
-grandparents_local
-```
-
-It's got some funky CamelCase column names, a mix of lower and uppercase letters, and some underscores. Let's standarize that, using a function called clean_names() from the [janitor package](https://github.com/sfirke/janitor)
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  clean_names()
-```
-
-Let's view it again. 
-
-```{r}
-grandparents_local
-```
-
-Janitor has a lot of other data cleaning functionality that's worth knowing about, but that we won't have a lot of time to cover, including:
-* It can identify duplicate rows
-* It can identify and remove blank rows
-
-This data set is relatively clean, but there's still some work we can do to it.
-
-Let's suppose we want to split our geography column into two columns, one with just the parish and one with just the state. 
-
-We can use the [separate() function](https://tidyr.tidyverse.org/reference/separate.html) here. We're telling it to split the column geography into two columns (parish and state), and to split them where you see a column.
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  separate(geography, into=c("parish_name","state"), sep=",")
-
-grandparents_local
-```
-
-Okay, good.  But that caused a problem.  The state column now has a tiny bit of white space at the front.We can see it when we highlight the column, using view.  
-
-Let's get rid of that, using [str_trim](https://stringr.tidyverse.org/reference/str_trim.html) from the [stringr package](https://stringr.tidyverse.org/index.html)
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  mutate(state = str_trim(state))
-
-grandparents_local
-```
-
-Okay, good, but let's suppose we wanted to join our parish data with another data set from the census, to explore relationships between demographic factors like race and poverty and grandchildren living with grandparents.  
-
-And let's suppose that the Census had parish names all lowercase, with no caps.
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  mutate(parish_name = tolower(parish_name))
-
-grandparents_local
-```
-
-Or, even worse, let's imagine that the Census data we want to join it with doesn't have the word "parish" in it. We can use [str_remove()](https://stringr.tidyverse.org/reference/str_remove.html) from stringr. 
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  mutate(parish_name = str_remove(parish_name, "parish"))
-
-grandparents_local
-```
-
-It's got that whitespace again, so let's trim it. Go ahead and do that on your own. 
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  mutate(parish_name = str_trim(parish_name))
-
-grandparents_local
-```
-
-Lastly, we're going to change the column type of id2.  It's stored as a "double", a number format.  But it's a FIPS code, and we'd never do math on it.  It makes more sense to store it as a character.  
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  mutate(id2 = as.character(id2))
-grandparents_local
-```
-
-In addition to as.character, there's also as.numeric and other functions for changing column types.
-
-Lastly, we'll learn how to split a string based on space. id2 is a FIPS code.  Two digit state, 3 digit county. 
-
-We can use [str_sub()](https://stringr.tidyverse.org/reference/str_sub.html) from the stringr package to take the first two digits from the left and store them in a new column called state_code.
-
-```{r}
-
-grandparents_local <- grandparents_local %>%
-  mutate(state_code = str_sub(id2, start=1L, end=2L))
-```
-
-On your own, create a new column for the county code. You want to get the last three digits.   
-
-```{r}
-grandparents_local <- grandparents_local %>%
-  mutate(county_code = str_sub(id2, start=3L, end=5L))
-
-```
-
-This is only scratching the surface for data cleaning. There's a ton more you can do. 
-
-I highly recomment checking out the documentation for:
-*[Janitor](https://github.com/sfirke/janitor)
-*[Stringr](https://stringr.tidyverse.org/index.html)
-
--30-
-
-### Make dirty df
-
-```{r}
-
-babynames_top_2017 <- babynames %>%
-  filter(sex=="F") %>%
-  filter(year == "2017") %>%
-  arrange(desc(n)) %>%
-  slice(1:20) %>%
-  select(name) %>%
-  distinct() %>%
-  as.list() %>%
-  unname()
-
-babynames_top_2017 <- babynames_top_2017[[1]]
-
-
-babynames_dirty <- babynames %>%
-  filter(sex == "F") %>%
-  filter(year > "2007") %>%
-  filter(name %in% babynames_top_2017) %>%
-  mutate(name = case_when(name == "Madison" ~ "MADISON",
-                          name == "Elizabeth" ~ "elizabeth",
-                          name == "Abigail" ~ "First Name: Abigail",
-                            TRUE ~ name)) %>%
-  select(-prop) %>%
-  pivot_wider(names_from = "year", values_from="n") %>%
-  mutate(`2015` = paste0(`2015`,"_")) %>%
-  rename(name_at_birth = name) %>%
-  mutate(sex = case_when(
-    row_number() %% 2 == 0 | row_number() %% 3 == 0 ~ "F",
-    TRUE ~ "Female"
-  )) %>%
-  mutate(`2015` = case_when(
-    `2015` == "NA_" ~ as.character(NA),
-    TRUE ~ `2015`
-  )) %>%
-  add_row() %>%
-  arrange(name_at_birth)
-
-amelia_emma <- babynames_dirty %>%
-  filter(name_at_birth %in% c("Emma","Amelia"))
-
-babynames_dirty <- babynames_dirty %>%
-  bind_rows(amelia_emma) %>%
-  arrange(name_at_birth) %>%
-  mutate(source = as.character(NA)) %>% 
-  mutate(name_at_birth = case_when(
-    row_number() == 10 ~ " Emma      ",
-    TRUE ~ name_at_birth
-  ))
-  
-
-
-write_rds(babynames_dirty,"data/R3/babynames_dirty.rds")
-```
