@@ -245,21 +245,21 @@ head(babynames)
 ```{r}
 Babynames_By_Name <- babynames %>% 
   group_by(name) %>% 
-  summarize(Total=n)
+  summarize(Total=sum(number))
   
 ```
 
 ```{r}
 Babynames_By_Name_and_Year <- babynames %>% 
   group_by(year, name) %>% 
-  summarize(Total=n)
+  summarize(Total=sum(number))
   
 ```
 
 ```{r}
 Babynames_By_Name_and_Year <- babynames %>% 
   group_by(year, name) %>% 
-  summarize(Total=n) %>% 
+  summarize(Total=sum(number)) %>% 
   arrange(desc(Total))
   
 ```
@@ -268,7 +268,7 @@ Babynames_By_Name_and_Year <- babynames %>%
 Top_Names_Your_Year <- babynames %>% 
   filter(year==1985) %>% 
   group_by(name) %>% 
-  summarize(Total=sum(n)) %>% 
+  summarize(Total=sum(number)) %>% 
   mutate(Top=data.table::frankv(Total, order=-1, ties.method ="first"))
 ```
 
@@ -280,8 +280,8 @@ Bonus! Save your name
 
 
 ```{r}
-Marys <- US_Names %>% 
-  filter(name=="Mary" & gender == "F")
+Marys <- babynames %>% 
+  filter(name=="Mary" & sex == "F")
 
 ggplot(Marys, aes(year, number))+
   geom_point()+
@@ -294,34 +294,34 @@ ggsave("Mary.jpg", plot=last_plot())
 
 Now for the state data set. 
 ```{r}
-download.file("https://www.ssa.gov/oact/babynames/state/namesbystate.zip", destfile = "state_names_dataset.zip", mode="wb") 
-unzip ("state_names_dataset.zip", exdir = "State_Names/")
+#download.file("https://www.ssa.gov/oact/babynames/state/namesbystate.zip", destfile = "state_names_dataset.zip", mode="wb") 
+#unzip ("state_names_dataset.zip", exdir = "State_Names/")
 ```
 
 
 
 ```{r}
-setwd("~/Code/Red/BabyNames/State_Names")
+#setwd("~/Code/Red/BabyNames/State_Names")
 
-list_of_files <- list.files(path = ".", recursive = TRUE,
-                            pattern = "{6}",
+#list_of_files <- list.files(path = ".", recursive = TRUE,
+                            #pattern = "{6}",
                             #pattern = "\\.txt$",
-                            full.names = TRUE)
+                            #full.names = TRUE)
 
-list_of_files <-list_of_files[- 43]
+#list_of_files <-list_of_files[- 43]
 
-df <- list_of_files %>%
-  purrr::set_names(nm = (basename(.) %>% tools::file_path_sans_ext())) %>%
-  purrr::map_df(read_csv, 
-                col_names = FALSE,
-                .id = "FileName",
-                col_types = cols(
-  X1 = col_character(),
-  X2 = col_character(),
-  X3 = col_double(),
-  X4 = col_character(),
-  X5 = col_double()
-))
+#df <- list_of_files %>%
+  #purrr::set_names(nm = (basename(.) %>% tools::file_path_sans_ext())) %>%
+  #purrr::map_df(read_csv, 
+                #col_names = FALSE,
+               # .id = "FileName",
+               # col_types = cols(
+  #X1 = col_character(),
+  #X2 = col_character(),
+  #X3 = col_double(),
+  #X4 = col_character(),
+  #X5 = col_double()
+#))
 ```
 
 
