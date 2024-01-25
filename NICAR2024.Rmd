@@ -1,0 +1,178 @@
+---
+title: "Baby Names"
+author: "Lucia Walinchus"
+date: "6/23/2020"
+output: html_document
+---
+
+Bringing in required packages
+
+```{r}
+library(ggplot2)
+library(tidyverse) #includes dplyr
+library(DT)
+library(babynames)
+```
+
+## Baby Names
+
+
+The babynames package brings in names from the [Social Security Administration](https://www.ssa.gov/oact/babynames/limits.html)
+
+Alternatively, you can download this file yourself which I prefer as it's more current. 
+
+
+Bringing in the dataframe
+
+```{r}
+US_Names <- babynames
+
+summary(US_Names)
+
+```
+
+
+Learning count
+
+```{r}
+US_Names %>% 
+  count(name)
+```
+
+Learning arrange
+```{r}
+US_Names %>% 
+  count(name) %>% 
+  arrange(desc(n))
+```
+
+
+Learning filter (and datatable)
+
+```{r}
+US_Names %>% 
+  filter(year==2010) %>% 
+  datatable()
+```
+
+
+Learning select
+
+```{r}
+US_Names %>% 
+  select(name,prop) %>% 
+  arrange(desc(prop))
+```
+
+
+Learning mutate
+
+```{r}
+popularity <- US_Names %>% 
+  mutate(popularity=rank(-n, ties.method= "first")) %>% 
+  arrange(popularity)
+
+head(popularity)
+```
+
+
+Learning summarize/group_by
+```{r}
+top_names <- US_Names %>% 
+  group_by(name) %>% 
+  summarize(total=sum(n)) %>% 
+  arrange(desc(total))
+
+datatable(top_names)
+```
+
+
+
+Basics of ggplot
+
+```{r}
+top_names %>% 
+  slice_head(n= 10) %>% 
+ggplot( aes(x= reorder(name, -total), y=total))+ #NOT %>%   
+  geom_col()
+```
+
+
+```{r}
+Marys <- US_Names %>% 
+  filter(name=="Mary" & sex == "F")
+
+ggplot(Marys, aes(year, n))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Mary' in the \n United States per Year", )
+
+```
+
+
+```{r}
+Leslies <- US_Names %>% 
+  filter(name=="Leslie")
+
+ggplot(Leslies, aes(year, n, fill = sex))+
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Leslie' in the United States per Year")
+
+```
+
+```{r}
+LuciaLucy <- US_Names %>% 
+  filter(name=="Lucia"| name=="Lucy"& sex=="F")
+
+ggplot(LuciaLucy, aes(year, n, color = name))+
+  geom_point(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Children Named 'Lucy' and 'Lucia' in the United States per Year")
+```
+
+
+```{r}
+ManyNames <- US_Names %>% 
+  filter(name=="Tyrion" |
+           name=="Kaleesi"|
+           name=="Shae"|
+           name=="Arya"|
+           name=="Bran"|
+           name=="Catelyn"|
+           name=="Joffrey"|
+           name=="Sansa"|
+           name=="Brienne")
+
+ggplot(ManyNames, aes(year, n, fill=name))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~name, scales = "free")+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "US Baby Names",subtitle = "Sample of 9 popular baby names in the US per year")
+
+```
+
+
+
+
+```{r}
+Lucias <- US_Names %>% 
+  filter(name=="Lucia"& sex == "F")
+
+ggplot(Lucias, aes(year, n))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 45, vjust =1.2, hjust = 1.1))+
+  labs(title = "Number of Lucias born each year", caption="I am having so much fun learning R")
+
+#ggsave("Lucia.jpg", plot=last_plot())
+```
+
+
+
+
+
+
+
+
+
+
