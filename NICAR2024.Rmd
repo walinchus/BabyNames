@@ -87,6 +87,35 @@ datatable(top_names)
 ```
 
 
+The real power of R: grouping and ungrouping these
+
+Learning summarize/group_by
+```{r}
+top_names_by_sex <- US_Names %>% 
+  group_by(name,sex) %>% 
+  summarize(total=sum(n)) %>% 
+  ungroup() %>% 
+  group_by(name) %>% 
+  mutate(percent=total/sum(total))
+  
+
+datatable(top_names_by_sex)
+```
+
+
+How many male versus female Averys?
+
+```{r}
+top_names_by_sex %>% 
+  filter(name=="Avery") %>% 
+  ggplot( aes(x=sex, y=percent, fill=sex))+
+  geom_col(stat="identity")
+```
+
+
+
+
+
 
 Basics of ggplot
 
@@ -154,6 +183,8 @@ ggplot(ManyNames, aes(year, n, fill=name))+
 
 
 
+
+Your turn: use your own name! 
 
 ```{r}
 Lucias <- US_Names %>% 
