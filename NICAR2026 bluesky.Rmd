@@ -1,0 +1,85 @@
+---
+title: "NICAR 2026- Follow bluesky users automatically"
+output: html_document
+date: "2026-02-23"
+author: "Lucia Walinchus"
+---
+
+```{r setup, include=FALSE}
+library(lubridate)
+library(tidyverse)
+library(ggplot2)
+library(bskyr)
+library(atrrr)
+library(gutenbergr)
+
+```
+
+
+### Follow NICAR2026 users 
+
+So you're excited to go to the [2026 NICAR data journalism conference](https://schedules.ire.org/nicar-2026/#/) and you want to follow all the speakers online. This quick tutorial will show you how do this with R and bluesky.
+
+Note: you could also do a starter pack but I did not feel like searching for all those names. Trust me, this is easier. 
+
+
+#### First you will have to create an app.
+
+Go to Settings -> Privacy and Security -> App passwords and then click the big blue button that says "Add App password."
+
+In your _console_, type _Sys.setenv(BLUESKY_PASS=_"put your APP password here") 
+
+
+### Next, pull in the schedule. 
+
+This only works with the JSON file, not the csv
+```{r}
+NICAR2026 <- rio::import("https://ire-nicar-conference-schedules.s3.us-east-2.amazonaws.com/nicar-2026/nicar-2026-schedule.json")
+
+```
+
+Make a dataframe of all the speakers 
+
+```{r}
+speakers <- NICAR2026$speakers
+```
+
+Get their socials
+```{r}
+socials <- speakers$social
+
+```
+
+Make that into a data frame
+```{r}
+get_socials <- bind_rows(socials)
+
+```
+
+And filter for bluesky
+
+```{r}
+
+bluesky <- get_socials %>% 
+filter(label=="Bluesky") %>% 
+  mutate(handle=stringr::str_replace(url,"https://bsky.app/profile/" ,""))
+```
+
+
+
+Then you can run this simple function I wrote to follow them all! 
+
+```{r}
+handles <- bluesky$handle
+
+follow_everyone <- function(handle_to_follow) {
+bs_follow(subject = handle_to_follow,
+user = "walinchus.bsky.social",  #switch this out with your own handle
+pass = Sys.getenv("BLUESKY_PASS"),
+auth = bs_auth("walinchus.bsky.social", Sys.getenv("BLUESKY_PASS"), save_auth = NULL),
+clean = TRUE)
+Sys.sleep(sample(1:10, 1)) #don't overwhelm things
+}
+purrr::map(handles, follow_everyone)
+```
+
